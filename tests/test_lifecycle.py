@@ -1,10 +1,11 @@
 from fastapi.testclient import TestClient
-from app.main import app
+from app.main import app, items_db
 
 client = TestClient(app)
 
 
 def test_full_item_lifecycle():
+    items_db.clear()
     # Create
     resp = client.post("/items", json={"title": "Lifecycle Item", "status": "active"})
     assert resp.status_code == 201
