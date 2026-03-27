@@ -28,8 +28,11 @@ async def health():
 
 
 @app.get("/items")
-async def list_items():
-    return {"items": list(items_db.values()), "total": len(items_db)}
+async def list_items(skip: int = 0, limit: int = 100):
+    all_items = list(items_db.values())
+    total = len(all_items)
+    paginated = all_items[skip : skip + limit]
+    return {"items": paginated, "total": total, "skip": skip, "limit": limit}
 
 
 @app.get("/items/{item_id}")

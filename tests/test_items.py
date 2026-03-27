@@ -55,3 +55,39 @@ def test_created_item_appears_in_list():
     data = resp.json()
     assert data["total"] == 1
     assert data["items"][0]["title"] == "Listed Item"
+
+
+def test_list_items_pagination_limit():
+    """GET /items with limit returns at most limit items."""
+    for i in range(5):
+        client.post("/items", json={"title": f"Item {i}"})
+    resp = client.get("/items", params={"limit": 3})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 5
+    assert len(data["items"]) == 3
+    assert data["limit"] == 3
+
+
+def test_list_items_pagination_skip():
+    """GET /items with skip skips the first skip items."""
+    for i in range(5):
+        client.post("/items", json={"title": f"Item {i}"})
+    resp = client.get("/items", params={"skip": 2, "limit": 2})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 5
+    assert len(data["items"]) == 2
+    assert data["skip"] == 2
+    assert data["limit"] == 2
+
+
+def test_list_items_pagination_defaults():
+    """GET /items without params returns all items with correct metadata."""
+    client.post("/items", json={"title": "Only Item"})
+    resp = client.get("/items")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["skip"] == 0
+    assert data["limit"] == 100
