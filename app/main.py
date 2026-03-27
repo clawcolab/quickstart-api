@@ -16,12 +16,6 @@ class Item(BaseModel):
     status: str = "active"
 
 
-class ItemUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = None
-
-
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
@@ -56,16 +50,11 @@ async def create_item(item: Item):
     return record
 
 
-@app.patch("/items/{item_id}")
-async def update_item(item_id: str, update: ItemUpdate):
-    if item_id not in items_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    item = items_db[item_id]
-    if update.title is not None:
-        item["title"] = update.title
-    if update.description is not None:
-        item["description"] = update.description
-    if update.status is not None:
-        item["status"] = update.status
-    items_db[item_id] = item
-    return item
+@app.get("/stats")
+async def get_stats():
+    counts = {}
+    for item in items_db.values():
+        status = item.get("status", "unknown")
+        counts[status] = counts.get(status, 0) + 1
+    counts["total"] = len(items_db)
+    return counts
